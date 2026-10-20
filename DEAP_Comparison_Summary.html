@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEAP Dataset Audit & Comparison Summary</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    color: #24292e;
+    background-color: #f6f8fa;
+    margin: 0;
+    padding: 24px;
+  }
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 32px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  }
+  h1 { border-bottom: 2px solid #eaecef; padding-bottom: 12px; color: #1a1f2c; }
+  h2 { margin-top: 32px; border-bottom: 1px solid #eaecef; padding-bottom: 8px; color: #2c3e50; }
+  .badge {
+    display: inline-block;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 20px;
+    margin-right: 8px;
+  }
+  .badge-warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+  .badge-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+  .badge-danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+  
+  .alert-box {
+    padding: 16px;
+    margin: 20px 0;
+    border-radius: 6px;
+    border-left: 5px solid;
+  }
+  .alert-critical {
+    background-color: #fff5f5;
+    border-color: #e53e3e;
+    color: #9b2c2c;
+  }
+  .alert-info {
+    background-color: #ebf8ff;
+    border-color: #3182ce;
+    color: #2b6cb0;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+  th, td {
+    padding: 12px 14px;
+    border: 1px solid #e1e4e8;
+    text-align: left;
+  }
+  th {
+    background-color: #f1f3f5;
+    font-weight: 600;
+    color: #333;
+  }
+  tr:nth-child(even) { background-color: #fafbfc; }
+  .match-exact { color: #28a745; font-weight: bold; }
+  .match-diff { color: #dc3545; font-weight: bold; }
+  .match-verified { color: #0066cc; font-weight: bold; }
+  
+  .metric-card-container {
+    display: flex;
+    gap: 16px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+  }
+  .metric-card {
+    flex: 1;
+    min-width: 200px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 16px;
+    text-align: center;
+  }
+  .metric-card h3 { margin: 0; font-size: 28px; color: #1b1e21; }
+  .metric-card p { margin: 4px 0 0; color: #6c757d; font-size: 13px; }
+  
+  code {
+    background-color: #f1f3f5;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Official DEAP vs. Kaggle DEAP Audit Summary</h1>
+  
+  <div>
+    <span class="badge badge-warning">Verdict: Modified & Conditionally Usable</span>
+    <span class="badge badge-success">Signals: 100% Structurally Verified</span>
+    <span class="badge badge-danger">Stored Labels: 34.3% Inverted (HVHA)</span>
+  </div>
+
+  <div class="alert-box alert-critical">
+    <h3 style="margin-top: 0;">Critical Finding: Programmatic Label Inversion Detected</h3>
+    <p>
+      The signal arrays across all 32 participant files (<code>s01.dat</code> to <code>s32.dat</code>) perfectly match DEAP preprocessed specifications (40 trials &times; 40 channels &times; 8064 samples, float64, 0 NaNs).
+      <br>
+      <strong>However, the stored emotional ratings array (<code>labels</code>) has undergone a selective mathematical inversion:</strong>
+      For every trial where true <code>Valence &gt; 5.0</code> and <code>Arousal &gt; 5.0</code>, stored values were transformed by <code>9.0 - x</code>.
+      This inverted <strong>439 out of 1,280 trials (34.30%)</strong> and generated <strong>163 out-of-range ratings (&lt; 1.0)</strong>, completely flipping binary High-Valence labels to Low-Valence.
+    </p>
+  </div>
+
+  <div class="metric-card-container">
+    <div class="metric-card">
+      <h3>32 / 32</h3>
+      <p>Participants Audited</p>
+    </div>
+    <div class="metric-card">
+      <h3>1,280</h3>
+      <p>Total Experimental Trials</p>
+    </div>
+    <div class="metric-card" style="border-left: 4px solid #dc3545;">
+      <h3 style="color: #dc3545;">439</h3>
+      <p>HVHA Inverted Trials (34.3%)</p>
+    </div>
+    <div class="metric-card" style="border-left: 4px solid #dc3545;">
+      <h3 style="color: #dc3545;">163</h3>
+      <p>Invalid Stored Ratings (&lt; 1.0)</p>
+    </div>
+    <div class="metric-card" style="border-left: 4px solid #28a745;">
+      <h3 style="color: #28a745;">100%</h3>
+      <p>Dominance & Liking Match Rate</p>
+    </div>
+  </div>
+
+  <h2>Systematic Property Comparison</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Property</th>
+        <th>Official DEAP Expectation</th>
+        <th>Observed Kaggle Data</th>
+        <th>Status</th>
+        <th>Empirical Evidence</th>
+        <th>Research Impact</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Participant Count</strong></td>
+        <td>32 participants (<code>s01</code>–<code>s32</code>)</td>
+        <td>32 pickle files</td>
+        <td><span class="match-exact">Exact Match</span></td>
+        <td>All files present in <code>data_preprocessed_python/</code></td>
+        <td>Full cohort available for Leave-One-Subject-Out (LOSO) validation.</td>
+      </tr>
+      <tr>
+        <td><strong>Signal Shape</strong></td>
+        <td><code>(40, 40, 8064)</code> per participant</td>
+        <td><code>(40, 40, 8064)</code> in all 32 files</td>
+        <td><span class="match-exact">Exact Match</span></td>
+        <td>Validated via <code>signal_structure_audit.csv</code></td>
+        <td>Standard array indexing applies directly.</td>
+      </tr>
+      <tr>
+        <td><strong>Sampling Rate & Duration</strong></td>
+        <td>128 Hz; 63.0 s (3s baseline + 60s stimulus)</td>
+        <td>8064 samples ($8064 / 128 = 63.0$ s)</td>
+        <td><span class="match-exact">Exact Match</span></td>
+        <td>$63 \times 128 = 8064$ samples</td>
+        <td>Baseline: samples 0–383; Stimulus: samples 384–8063.</td>
+      </tr>
+      <tr>
+        <td><strong>Channel Allocation</strong></td>
+        <td>Ch 0–31: EEG; Ch 32–39: Peripheral</td>
+        <td>Ch 0–31: $\approx \pm 100 \mu\text{V}$; Ch 32–39: Polygraphic</td>
+        <td><span class="match-verified">Consistent</span></td>
+        <td>Channel variance matches biophysical ranges</td>
+        <td>Clean 32-channel EEG ready for bandpower feature extraction.</td>
+      </tr>
+      <tr>
+        <td><strong>Trial Ordering</strong></td>
+        <td>Sorted by <code>Experiment_id</code> (1–40)</td>
+        <td>Sorted by <code>Experiment_id</code> (1–40)</td>
+        <td><span class="match-exact">Exact Match</span></td>
+        <td>100.0% match on Dominance & Liking when sorted by Exp ID</td>
+        <td>Row $i$ corresponds to video $i+1$, NOT chronological order.</td>
+      </tr>
+      <tr>
+        <td><strong>Rating Scale Bounds</strong></td>
+        <td>Continuous $[1.0, 9.0]$</td>
+        <td>Valence: $[0.00, 9.00]$; Arousal: $[0.00, 8.94]$</td>
+        <td><span class="match-diff">Corrupted</span></td>
+        <td>163 stored ratings &lt; 1.0 (minimum = 0.00)</td>
+        <td>Violates Likert scale; raw stored labels are unsafe for training.</td>
+      </tr>
+      <tr>
+        <td><strong>Label Alignment</strong></td>
+        <td>Consistent with <code>participant_ratings.xls</code></td>
+        <td>841 exact matches; 439 inverted via $9.0 - x$</td>
+        <td><span class="match-diff">Deterministic Inversion</span></td>
+        <td>100% of trials with true V&gt;5 &amp; A&gt;5 are inverted</td>
+        <td>Labels must be replaced with metadata before model training.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>The Inversion Discovery: Clear Before / After Examples</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Participant</th>
+        <th>Experiment ID</th>
+        <th>Metadata Valence</th>
+        <th>Stored Valence</th>
+        <th>Metadata Arousal</th>
+        <th>Stored Arousal</th>
+        <th>Dominance & Liking</th>
+        <th>Impact on Binary Valence (Th=5.0)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="background-color: #fff5f5;">
+        <td><code>s01</code></td>
+        <td>1 (Row 0)</td>
+        <td><strong>7.71</strong> (High)</td>
+        <td><strong>1.29</strong> (Low)</td>
+        <td>7.60</td>
+        <td>1.40</td>
+        <td>Exact match (6.90, 7.83)</td>
+        <td><span style="color:red; font-weight:bold;">FLIPPED: High &rarr; Low</span></td>
+      </tr>
+      <tr style="background-color: #fff5f5;">
+        <td><code>s01</code></td>
+        <td>21 (Row 20)</td>
+        <td><strong>9.00</strong> (High)</td>
+        <td><strong>0.00</strong> (Invalid)</td>
+        <td>7.95</td>
+        <td>1.05</td>
+        <td>Exact match (8.37, 7.86)</td>
+        <td><span style="color:red; font-weight:bold;">FLIPPED: High &rarr; Invalid 0.0</span></td>
+      </tr>
+      <tr style="background-color: #f0fff4;">
+        <td><code>s01</code></td>
+        <td>4 (Row 3)</td>
+        <td><strong>4.94</strong> (Low)</td>
+        <td><strong>4.94</strong> (Low)</td>
+        <td>6.01</td>
+        <td>6.01</td>
+        <td>Exact match (6.12, 8.06)</td>
+        <td><span style="color:green; font-weight:bold;">EXACT MATCH (Outside HVHA)</span></td>
+      </tr>
+      <tr style="background-color: #f0fff4;">
+        <td><code>s01</code></td>
+        <td>5 (Row 4)</td>
+        <td><strong>6.96</strong> (High)</td>
+        <td><strong>6.96</strong> (High)</td>
+        <td>3.92</td>
+        <td>3.92</td>
+        <td>Exact match (7.19, 6.05)</td>
+        <td><span style="color:green; font-weight:bold;">EXACT MATCH (Arousal &lt; 5.0)</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Relevance to Personalized EEG Classification Pipeline</h2>
+  <div class="alert-box alert-info">
+    <ol>
+      <li><strong>Binary Valence Threshold (5.0)</strong>: Using raw <code>.dat</code> labels causes 439 true High-Valence trials to be labeled Low-Valence. You must load ground-truth ratings from <code>participant_ratings.xls</code> sorted by <code>Experiment_id</code>.</li>
+      <li><strong>Calibration Starting from 6th Second</strong>: The first 3 seconds (samples 0–383) are fixation baseline. The stimulus begins at sample 384. Stimulus second 5 (6th second of stimulus) corresponds to recording sample index <code>1024</code> ($384 + 5 \times 128$).</li>
+      <li><strong>Participant & Trial Separation</strong>: Cleanly separated across 32 files. LOSO cross-validation is fully supported. Unseen-trial calibration is strongly recommended over half-signal splitting to avoid temporal leakage.</li>
+    </ol>
+  </div>
+
+  <h2>Deliverables Generated in <code>data set compare/comparison_report/</code></h2>
+  <ul>
+    <li><code>DEAP_Comparison_Report.md</code> — Full analytical markdown report.</li>
+    <li><code>file_inventory.csv</code> — Complete 122-file inventory with sizes and SHA-256 hashes.</li>
+    <li><code>signal_structure_audit.csv</code> — File-level signal properties for all 32 participants.</li>
+    <li><code>label_summary.csv</code> — Descriptive statistics and class distributions per participant.</li>
+    <li><code>invalid_ratings_only.csv</code> — Itemized list of all 163 out-of-range labels (&lt; 1.0).</li>
+    <li><code>stored_vs_metadata_labels.csv</code> — Comprehensive 1,280-trial comparison against metadata.</li>
+    <li><code>metadata_alignment_evidence.csv</code> — Proof of trial alignment by Experiment ID.</li>
+    <li><code>audit_dataset.py</code> — Self-contained, reproducible Python audit script.</li>
+    <li><code>requirements.txt</code> — Python dependency specifications.</li>
+    <li><code>sources.md</code> — Authoritative DEAP and literature citations.</li>
+  </ul>
+</div>
+</body>
+</html>
